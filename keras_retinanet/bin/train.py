@@ -49,6 +49,14 @@ from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
 
+def load_labels_from_json(json_path):
+    import json
+    with open(json_path,"r+") as json_file:
+        labels = json.load(json_file)
+    for key in list(labels.keys()):
+        labels[int(key)] = labels[key]
+        del labels[key]
+    return labels
 
 def makedirs(path):
     # Intended behavior: try to create the directory,
@@ -278,11 +286,9 @@ def create_generators(args, preprocess_image):
             **common_args
         )
     elif args.dataset_type == 'pascal':
-        import json
         if args.pascal_new_labels_json is not None:
-            with open(args.pascal_new_labels_json,"r+") as json_file:
-                classes = json.load(json_file)
-        
+            classes = load_labels_from_json(args.pascal_new_labels_json)
+
             train_generator = PascalVocGenerator(
                 args.pascal_path,
                 'train',
