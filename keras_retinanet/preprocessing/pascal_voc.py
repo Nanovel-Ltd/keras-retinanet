@@ -80,6 +80,7 @@ class PascalVocGenerator(Generator):
         image_extension='.jpg',
         skip_truncated=False,
         skip_difficult=False,
+        new_labels = None,
         **kwargs
     ):
         """ Initialize a Pascal VOC data generator.

@@ -278,22 +278,44 @@ def create_generators(args, preprocess_image):
             **common_args
         )
     elif args.dataset_type == 'pascal':
-        train_generator = PascalVocGenerator(
-            args.pascal_path,
-            'train',
-            image_extension=args.image_extension,
-            transform_generator=transform_generator,
-            visual_effect_generator=visual_effect_generator,
-            **common_args
-        )
-
-        validation_generator = PascalVocGenerator(
-            args.pascal_path,
-            'val',
-            image_extension=args.image_extension,
-            shuffle_groups=False,
-            **common_args
-        )
+        import json
+        if args.pascal_new_labels_json is not None:
+            with open(args.pascal_new_labels_json,"r+") as json_file:
+                classes = json.load(json_file)
+        
+            train_generator = PascalVocGenerator(
+                args.pascal_path,
+                'train',
+                classes=classes,
+                image_extension=args.image_extension,
+                transform_generator=transform_generator,
+                visual_effect_generator=visual_effect_generator,
+                **common_args
+            )
+            validation_generator = PascalVocGenerator(
+                args.pascal_path,
+                'val',
+                classes=classes,
+                image_extension=args.image_extension,
+                shuffle_groups=False,
+                **common_args
+            )
+        else:
+            train_generator = PascalVocGenerator(
+                args.pascal_path,
+                'train',
+                image_extension=args.image_extension,
+                transform_generator=transform_generator,
+                visual_effect_generator=visual_effect_generator,
+                **common_args
+            )
+            validation_generator = PascalVocGenerator(
+                args.pascal_path,
+                'val',
+                image_extension=args.image_extension,
+                shuffle_groups=False,
+                **common_args
+            )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
@@ -450,7 +472,7 @@ def parse_args(args):
     parser.add_argument('--reduce-lr-patience', help='Reduce learning rate after validation loss decreases over reduce_lr_patience epochs', type=int, default=2)
     parser.add_argument('--reduce-lr-factor', help='When learning rate is reduced due to reduce_lr_patience, multiply by reduce_lr_factor', type=float, default=0.1)
     parser.add_argument('--group-method',     help='Determines how images are grouped together', type=str, default='ratio', choices=['none', 'random', 'ratio'])
-
+    parser.add_argument('--pascal-new-labels-json', help='Path to json file conatining new labels for replacing pascal-voc deafults', type=str, default=None)
     # Fit generator arguments
     parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
     parser.add_argument('--workers',          help='Number of generator workers.', type=int, default=1)
