@@ -239,7 +239,10 @@ def load_labels_from_json(json_path):
 def main(args=None):
   
      # parse arguments
-    import sys
+    import glob 
+    import os
+    import random
+    import shutil 
     if args is None:
         args = sys.argv[1:]
     args = parse_args(args)
@@ -252,10 +255,6 @@ def main(args=None):
 
 
     if args.d:
-        import glob
-        import os
-        import random
-        import shutil
         images_list = glob.glob(os.path.join(args.input,f"*.{args.file_ext}"))
         print("samples num is "+ str(args.samples_num))
         images_list = random.choices(images_list,k=args.samples_num)
@@ -264,7 +263,7 @@ def main(args=None):
         new_output_dir_name = os.path.join(args.output,f"{time.time()}")
         print(f"creating output folder with name: \n{new_output_dir_name}\n _______________________________________")
         os.makedirs(new_output_dir_name)
-        print("output older created successfully!")
+        print("output folder created successfully!")
 
         print("loading model....\n\n\n_________________________________")
         model = load_model_from_path(args.weights_path)
@@ -284,6 +283,19 @@ def main(args=None):
             cv2.imwrite(output_predicted_name,cv2.cvtColor(image_with_boxes,cv2.COLOR_RGB2BGR))
             print(f"predict for image: {image_path}")
             counter+=1
+    else:
+        print("loading model....\n\n\n_________________________________")
+        model = load_model_from_path(args.weights_path)
+        print("**************Model loaded successfully!! ****************\n\n\n")
+        print("prediction for single file")
+        labels = load_labels_from_json(args.labels_json)
+        image_with_boxes = predict_for_single_image(model=model,
+                                                        label_names=labels,
+                                                        image_path=args.input,
+                                                        confidence_cutoff=args.min_confidence_cutoff)
+
+        cv2.imwrite(args.output,cv2.cvtColor(image_with_boxes,cv2.COLOR_RGB2BGR))
+        print(f"predict for image: {args.input}")
             
 
 if __name__ == "__main__":
